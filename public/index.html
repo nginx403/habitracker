@@ -327,7 +327,7 @@
 
         function openShare(hs) {
           var s = $("sheet");
-          s.innerHTML = '<h2>Share ' + (hs.length > 1 ? "all habits" : esc(hs[0].name)) + '</h2><label for="se">Their Google email</label><input type="text" id="se" placeholder="name@gmail.com" autocapitalize="off" autocomplete="off"><div class="acts"><button class="btn ghost" data-x="cancel">Cancel</button><button class="btn" data-x="send">Send</button></div>';
+          s.innerHTML = '<h2>Share ' + (hs.length > 1 ? "all habits" : esc(hs[0].name)) + '</h2><label for="se">Their Google email</label><input type="text" id="se" placeholder="username@gmail.com" autocapitalize="off" autocomplete="off"><div class="acts"><button class="btn ghost" data-x="cancel">Cancel</button><button class="btn" data-x="send">Send</button></div>';
           $("modal").classList.add("show");
 
           s.onclick = function (e) {
