@@ -130,7 +130,7 @@
       };
 
       (function () {
-        var S = { habits: [], logs: {}, inbox: [], sharedDone: {} },
+        var S = { habits: [], logs: {}, inbox: [], sharedDone: {}, ownerSharedDone: {} },
           uid = null,
           me = { name: "", email: "" },
           auth,
@@ -250,6 +250,9 @@
           if (habit && habit.sharedId && S.sharedDone[habit.sharedId]) {
             return S.sharedDone[habit.sharedId].indexOf(d) > -1;
           }
+          if (habit && S.ownerSharedDone[id]) {
+            return S.ownerSharedDone[id].indexOf(d) > -1;
+          }
           return (S.logs[d] || []).indexOf(id) > -1;
         }
 
@@ -295,6 +298,13 @@
           if (i > -1) l.splice(i, 1);
           else l.push(id);
           S.logs[d] = l;
+          if (habit && S.ownerSharedDone[id]) {
+            var sharedDays = S.ownerSharedDone[id].slice(),
+              sharedIndex = sharedDays.indexOf(d);
+            if (done && sharedIndex === -1) sharedDays.push(d);
+            if (!done && sharedIndex > -1) sharedDays.splice(sharedIndex, 1);
+            S.ownerSharedDone[id] = sharedDays;
+          }
           saveLogs([d.slice(0, 4)]);
           syncSharedCompletion(id, d, done);
           render();
@@ -423,7 +433,9 @@
                   name: h.name,
                   start: h.start,
                   end: h.end || null,
-                  doneDays: [],
+                  doneDays: Object.keys(S.logs).filter(function (day) {
+                    return (S.logs[day] || []).indexOf(h.id) > -1;
+                  }),
                   at: Date.now()
                 });
               }))
@@ -666,7 +678,7 @@
 
           if (!u) {
             uid = null;
-            S = { habits: [], logs: {}, inbox: [], sharedDone: {} };
+            S = { habits: [], logs: {}, inbox: [], sharedDone: {}, ownerSharedDone: {} };
             $("login").style.display = "flex";
             return;
           }
@@ -693,6 +705,25 @@
                 toast("Sync error. Reload the page.");
               }
             )
+          );
+
+          unsubs.push(
+            fs.collection("shares")
+              .where("fromUid", "==", uid)
+              .onSnapshot(
+                function (qs) {
+                  var shared = {};
+                  qs.forEach(function (doc) {
+                    var v = doc.data() || {};
+                    shared[v.habitId] = v.doneDays || [];
+                  });
+                  S.ownerSharedDone = shared;
+                  render();
+                },
+                function () {
+                  toast("Sync error. Reload the page.");
+                }
+              )
           );
 
           unsubs.push(
