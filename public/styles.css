@@ -351,11 +351,69 @@ button {
   color: var(--mute);
 }
 
-.hab-title {
+.hab-heading {
   display: flex;
   align-items: center;
+  gap: 4px;
+}
+
+.drag-handle {
+  flex: none;
+  width: 24px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--mute);
+  font-size: 16px;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.hab-move {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+}
+
+.hab-move button {
+  width: 28px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--mute);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.hab-move button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.hab.dragging {
+  opacity: 0.45;
+}
+
+.hab.drop-target {
+  outline: 2px dashed var(--mute);
+  outline-offset: 2px;
+}
+
+.hab-title {
+  display: flex;
+  flex: 1;
+  align-items: center;
   gap: 8px;
-  width: 100%;
+  min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;

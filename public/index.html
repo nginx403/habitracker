@@ -314,9 +314,9 @@
 
             if (!S.habits.length) h += '<div class="empty">Nothing yet. Add your first habit.</div>';
 
-            S.habits.forEach(function (x) {
+            S.habits.forEach(function (x, index) {
               var off = x.end && x.end < TODAY;
-              h += '<div class="hab' + (off ? " off" : "") + '"><button type="button" class="hab-title" data-e="' + x.id + '"><span class="habit-mark" aria-hidden="true">' + esc(x.emoji || "") + '</span><span class="hab-name">' + esc(x.name) + '</span></button><div class="hab-meta"><small>' + (off ? "Ended " : "Daily · ") + (x.end ? "until " + fmt(x.end, { month: "short", day: "numeric", year: "numeric" }) : "until stopped") + '</small><span class="hab-actions"><button type="button" class="hab-action" data-share="' + x.id + '">Share</button><button type="button" class="hab-action danger" data-delete="' + x.id + '">Delete</button></span></div></div>';
+              h += '<div class="hab' + (off ? " off" : "") + '" data-habit-id="' + x.id + '"><div class="hab-heading"><button type="button" class="drag-handle" draggable="true" data-drag-id="' + x.id + '" aria-label="Drag to reorder ' + esc(x.name) + '" title="Drag to reorder">⋮⋮</button><span class="hab-move"><button type="button" data-order="up" data-order-id="' + x.id + '" aria-label="Move ' + esc(x.name) + ' up" title="Move up"' + (index === 0 ? " disabled" : "") + '>↑</button><button type="button" data-order="down" data-order-id="' + x.id + '" aria-label="Move ' + esc(x.name) + ' down" title="Move down"' + (index === S.habits.length - 1 ? " disabled" : "") + '>↓</button></span><button type="button" class="hab-title" data-e="' + x.id + '"><span class="habit-mark" aria-hidden="true">' + esc(x.emoji || "") + '</span><span class="hab-name">' + esc(x.name) + '</span></button></div><div class="hab-meta"><small>' + (off ? "Ended " : "Daily · ") + (x.end ? "until " + fmt(x.end, { month: "short", day: "numeric", year: "numeric" }) : "until stopped") + '</small><span class="hab-actions"><button type="button" class="hab-action" data-share="' + x.id + '">Share</button><button type="button" class="hab-action danger" data-delete="' + x.id + '">Delete</button></span></div></div>';
             });
 
             h += '<button class="btn ghost" style="width:100%;margin-top:16px" data-a="out">Sign out</button>';
@@ -498,6 +498,28 @@
           render();
         }
 
+        function reorderHabit(sourceId, targetId) {
+          var sourceIndex = S.habits.findIndex(function (habit) {
+              return habit.id === sourceId;
+            }),
+            targetIndex = S.habits.findIndex(function (habit) {
+              return habit.id === targetId;
+            });
+          if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return;
+
+          var moved = S.habits.splice(sourceIndex, 1)[0];
+          targetIndex = S.habits.findIndex(function (habit) {
+            return habit.id === targetId;
+          });
+          S.habits.splice(targetIndex, 0, moved);
+          saveHabits();
+          render();
+          var handle = Array.prototype.filter.call(document.querySelectorAll("[data-drag-id]"), function (item) {
+            return item.dataset.dragId === sourceId;
+          })[0];
+          if (handle) handle.focus();
+        }
+
         function close() {
           $("modal").classList.remove("show");
         }
@@ -524,6 +546,14 @@
             cur = b.dataset.d;
             view = "day";
             render();
+          } else if (b.dataset.order) {
+            var habitIndex = S.habits.findIndex(function (habit) {
+              return habit.id === b.dataset.orderId;
+            });
+            var targetIndex = habitIndex + (b.dataset.order === "up" ? -1 : 1);
+            if (targetIndex >= 0 && targetIndex < S.habits.length) {
+              reorderHabit(b.dataset.orderId, S.habits[targetIndex].id);
+            }
           } else if (b.dataset.share) {
             var habitToShare = S.habits.filter(function (habit) {
               return habit.id === b.dataset.share;
@@ -572,6 +602,40 @@
             mon.setMonth(mon.getMonth() + 1);
             render();
           }
+        });
+
+        $("main").addEventListener("dragstart", function (e) {
+          var handle = e.target.closest("[data-drag-id]");
+          if (!handle) return;
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", handle.dataset.dragId);
+          handle.closest(".hab").classList.add("dragging");
+        });
+
+        $("main").addEventListener("dragover", function (e) {
+          var row = e.target.closest(".hab");
+          if (!row || !e.dataTransfer) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          Array.prototype.forEach.call($("main").querySelectorAll(".hab.drop-target"), function (item) {
+            item.classList.remove("drop-target");
+          });
+          row.classList.add("drop-target");
+        });
+
+        $("main").addEventListener("drop", function (e) {
+          var row = e.target.closest(".hab");
+          if (!row || !e.dataTransfer) return;
+          e.preventDefault();
+          reorderHabit(e.dataTransfer.getData("text/plain"), row.dataset.habitId);
+        });
+
+        $("main").addEventListener("dragend", function (e) {
+          var handle = e.target.closest("[data-drag-id]");
+          if (handle) handle.closest(".hab").classList.remove("dragging");
+          Array.prototype.forEach.call($("main").querySelectorAll(".hab.drop-target"), function (item) {
+            item.classList.remove("drop-target");
+          });
         });
 
         $("themeToggle").addEventListener("click", function () {
