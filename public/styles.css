@@ -469,23 +469,6 @@ button {
   margin-bottom: 16px;
 }
 
-.install-link {
-  display: block;
-  width: 100%;
-  margin-top: 14px;
-  padding: 8px;
-  border: 0;
-  background: transparent;
-  color: var(--mute);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  text-align: center;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  cursor: pointer;
-}
-
 #modal {
   position: fixed;
   z-index: 5;
@@ -748,10 +731,6 @@ h3 {
 
   .hab-action.icon-action:hover {
     background: var(--soft);
-  }
-
-  .install-link:hover {
-    color: var(--fg);
   }
 
   .cell.g:hover,

@@ -8,9 +8,6 @@
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#252525" />
-    <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="icon-192.png" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Ctext y='88' font-size='96'%3E%E2%98%91%EF%B8%8F%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
     <title>habitracker</title>
     <link rel="stylesheet" href="styles.css" />
@@ -59,17 +56,7 @@
           me = { name: "", email: "" },
           auth,
           fs,
-          unsubs = [],
-          installPrompt = null;
-
-        window.addEventListener("beforeinstallprompt", function (event) {
-          event.preventDefault();
-          installPrompt = event;
-        });
-
-        window.addEventListener("appinstalled", function () {
-          installPrompt = null;
-        });
+          unsubs = [];
 
         function applyTheme(theme) {
           var next = theme === "dark" ? "dark" : "light";
@@ -131,14 +118,14 @@
         mon.setDate(1);
 
         var tt;
-        function toast(m, duration) {
+        function toast(m) {
           var t = $("toast");
           t.textContent = m;
           t.style.display = "block";
           clearTimeout(tt);
           tt = setTimeout(function () {
             t.style.display = "none";
-          }, duration || 3500);
+          }, 3500);
         }
 
         function fail() {
@@ -332,8 +319,7 @@
               h += '<div class="hab' + (off ? " off" : "") + '" data-habit-id="' + x.id + '"><div class="hab-heading"><button type="button" class="drag-handle" data-drag-id="' + x.id + '" aria-label="Drag to reorder ' + esc(x.name) + '" title="Drag to reorder">⋮⋮</button><button type="button" class="hab-title" data-e="' + x.id + '"><span class="habit-mark" aria-hidden="true">' + esc(x.emoji || "") + '</span><span class="hab-name">' + esc(x.name) + '</span></button></div><div class="hab-meta"><small>' + (off ? "Ended " : "Daily · ") + (x.end ? "until " + fmt(x.end, { month: "short", day: "numeric", year: "numeric" }) : "until stopped") + '</small><span class="hab-actions"><button type="button" class="hab-action icon-action" data-share="' + x.id + '" aria-label="Share habit" title="Share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.7 10.5 6.6-4"></path><path d="m8.7 13.5 6.6 4"></path></svg></button><button type="button" class="hab-action danger icon-action" data-delete="' + x.id + '" aria-label="Delete habit" title="Delete"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18"></path><path d="M8 4V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1"></path><path d="m19 4-1 16.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20.5L5 4"></path><path d="M10 10v8"></path><path d="M14 10v8"></path></svg></button></span></div></div>';
             });
 
-            h += '<button class="install-link" type="button" data-a="install">Install app</button>' +
-              '<button class="btn ghost" style="width:100%;margin-top:4px" data-a="out">Sign out</button>';
+            h += '<button class="btn ghost" style="width:100%;margin-top:16px" data-a="out">Sign out</button>';
           }
 
           m.innerHTML = h;
@@ -512,32 +498,6 @@
           render();
         }
 
-        function installApp() {
-          var standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
-            || window.navigator.standalone === true;
-          if (standalone) {
-            toast("Habit Tracker is already installed.", 6000);
-            return;
-          }
-
-          if (!installPrompt) {
-            var isAppleMobile = /iphone|ipad|ipod/i.test(navigator.userAgent);
-            toast(isAppleMobile
-              ? "To install, tap Share in Safari, then choose Add to Home Screen."
-              : "Open your browser menu and choose Install app or Add to Home Screen.", 7000);
-            return;
-          }
-
-          var promptEvent = installPrompt;
-          installPrompt = null;
-          promptEvent.prompt();
-          promptEvent.userChoice.then(function (choice) {
-            toast(choice.outcome === "accepted" ? "Habit Tracker installed." : "Install cancelled.", 6000);
-          }).catch(function () {
-            toast("Could not start installation. Use your browser menu to install the app.", 7000);
-          });
-        }
-
         function persistHabitOrder() {
           var orderedIds = Array.prototype.map.call($("main").querySelectorAll(".hab"), function (row) {
             return row.dataset.habitId;
@@ -629,7 +589,6 @@
           else if (a === "shareall") openShare(S.habits.filter(function (h) {
             return !h.end || h.end >= TODAY;
           }));
-          else if (a === "install") installApp();
           else if (a === "out") auth.signOut();
           else if (a === "prev") {
             cur = addDays(cur, -1);
@@ -707,10 +666,6 @@
         });
 
         initTheme();
-
-        if ("serviceWorker" in navigator && location.protocol === "https:") {
-          navigator.serviceWorker.register("./sw.js").catch(function () {});
-        }
 
         function stop() {
           unsubs.forEach(function (u) {
