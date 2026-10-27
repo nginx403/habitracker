@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "prod": "nginx403-habitracker",
+    "default": "nginx403-habitracker"
+  },
+  "targets": {},
+  "etags": {}
+}

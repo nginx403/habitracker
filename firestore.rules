@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Each user can read/write only their own habits and history
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    // Shared habits: only the sender and the recipient (by Google email) can see them
+    match /shares/{id} {
+      allow create: if request.auth != null
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.toEmail is string;
+      allow update: if request.auth != null && (
+        (resource.data.fromUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['doneDays']))
+        || (resource.data.toEmail == request.auth.token.email.lower()
+          && resource.data.get('acceptedByUid', null) == null
+          && request.resource.data.acceptedByUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['acceptedByUid', 'acceptedAt']))
+        || (resource.data.get('acceptedByUid', null) == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['doneDays']))
+      );
+      allow read, delete: if request.auth != null
+        && (resource.data.fromUid == request.auth.uid
+            || resource.data.toEmail == request.auth.token.email.lower());
+    }
+  }
+}
