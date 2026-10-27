@@ -448,7 +448,7 @@
           function draw() {
             s.innerHTML =
               '<h2>' + (id ? "Edit habit" : "New habit") + '</h2>' +
-              '<label for="hn">Name</label><input type="text" id="hn" maxlength="60" value="' + esc(x.name) + '" placeholder="e.g. Read 20 pages">' +
+              '<label for="hn">Name</label><input type="text" id="hn" maxlength="60" autocomplete="off" value="' + esc(x.name) + '" placeholder="e.g. Read 20 pages">' +
               '<label for="hs">Starts</label><input type="date" id="hs" value="' + x.start + '">' +
               '<label>Repeats daily</label><div class="opt"><button data-m="never" class="' + (mode === "never" ? "on" : "") + '">Until I stop it</button><button data-m="date" class="' + (mode === "date" ? "on" : "") + '">Until a date</button></div>' +
               (mode === "date" ? '<input type="date" id="he" value="' + (x.end || addDays(TODAY, 30)) + '">' : "") +
