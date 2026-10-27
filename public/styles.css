@@ -375,37 +375,8 @@ button {
   cursor: grabbing;
 }
 
-.hab-move {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 2px;
-}
-
-.hab-move button {
-  width: 28px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--mute);
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.hab-move button:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
 .hab.dragging {
   opacity: 0.45;
-}
-
-.hab.drop-target {
-  outline: 2px dashed var(--mute);
-  outline-offset: 2px;
 }
 
 .hab-title {
@@ -470,6 +441,26 @@ button {
 
 .hab-action.danger {
   color: var(--red);
+}
+
+.hab-action.icon-action {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.hab-action svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .add {
@@ -735,6 +726,10 @@ h3 {
 
   .hab-action.danger:hover {
     color: var(--red);
+  }
+
+  .hab-action.icon-action:hover {
+    background: var(--soft);
   }
 
   .cell.g:hover,

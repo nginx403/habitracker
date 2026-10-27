@@ -316,7 +316,7 @@
 
             S.habits.forEach(function (x, index) {
               var off = x.end && x.end < TODAY;
-              h += '<div class="hab' + (off ? " off" : "") + '" data-habit-id="' + x.id + '"><div class="hab-heading"><button type="button" class="drag-handle" draggable="true" data-drag-id="' + x.id + '" aria-label="Drag to reorder ' + esc(x.name) + '" title="Drag to reorder">⋮⋮</button><span class="hab-move"><button type="button" data-order="up" data-order-id="' + x.id + '" aria-label="Move ' + esc(x.name) + ' up" title="Move up"' + (index === 0 ? " disabled" : "") + '>↑</button><button type="button" data-order="down" data-order-id="' + x.id + '" aria-label="Move ' + esc(x.name) + ' down" title="Move down"' + (index === S.habits.length - 1 ? " disabled" : "") + '>↓</button></span><button type="button" class="hab-title" data-e="' + x.id + '"><span class="habit-mark" aria-hidden="true">' + esc(x.emoji || "") + '</span><span class="hab-name">' + esc(x.name) + '</span></button></div><div class="hab-meta"><small>' + (off ? "Ended " : "Daily · ") + (x.end ? "until " + fmt(x.end, { month: "short", day: "numeric", year: "numeric" }) : "until stopped") + '</small><span class="hab-actions"><button type="button" class="hab-action" data-share="' + x.id + '">Share</button><button type="button" class="hab-action danger" data-delete="' + x.id + '">Delete</button></span></div></div>';
+              h += '<div class="hab' + (off ? " off" : "") + '" data-habit-id="' + x.id + '"><div class="hab-heading"><button type="button" class="drag-handle" data-drag-id="' + x.id + '" aria-label="Drag to reorder ' + esc(x.name) + '" title="Drag to reorder">⋮⋮</button><button type="button" class="hab-title" data-e="' + x.id + '"><span class="habit-mark" aria-hidden="true">' + esc(x.emoji || "") + '</span><span class="hab-name">' + esc(x.name) + '</span></button></div><div class="hab-meta"><small>' + (off ? "Ended " : "Daily · ") + (x.end ? "until " + fmt(x.end, { month: "short", day: "numeric", year: "numeric" }) : "until stopped") + '</small><span class="hab-actions"><button type="button" class="hab-action icon-action" data-share="' + x.id + '" aria-label="Share habit" title="Share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.7 10.5 6.6-4"></path><path d="m8.7 13.5 6.6 4"></path></svg></button><button type="button" class="hab-action danger icon-action" data-delete="' + x.id + '" aria-label="Delete habit" title="Delete"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="m19 6-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg></button></span></div></div>';
             });
 
             h += '<button class="btn ghost" style="width:100%;margin-top:16px" data-a="out">Sign out</button>';
@@ -498,24 +498,36 @@
           render();
         }
 
-        function reorderHabit(sourceId, targetId) {
-          var sourceIndex = S.habits.findIndex(function (habit) {
-              return habit.id === sourceId;
-            }),
-            targetIndex = S.habits.findIndex(function (habit) {
-              return habit.id === targetId;
-            });
-          if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return;
-
-          var moved = S.habits.splice(sourceIndex, 1)[0];
-          targetIndex = S.habits.findIndex(function (habit) {
-            return habit.id === targetId;
+        function persistHabitOrder() {
+          var orderedIds = Array.prototype.map.call($("main").querySelectorAll(".hab"), function (row) {
+            return row.dataset.habitId;
           });
-          S.habits.splice(targetIndex, 0, moved);
+          var reordered = orderedIds.map(function (id) {
+            return S.habits.filter(function (habit) {
+              return habit.id === id;
+            })[0];
+          }).filter(Boolean);
+          if (reordered.length !== S.habits.length) return;
+          if (reordered.every(function (habit, index) {
+            return habit.id === S.habits[index].id;
+          })) return;
+          S.habits = reordered;
+          saveHabits();
+          render();
+        }
+
+        function moveHabitByKeyboard(id, direction) {
+          var from = S.habits.findIndex(function (habit) {
+              return habit.id === id;
+            }),
+            to = from + direction;
+          if (from < 0 || to < 0 || to >= S.habits.length) return;
+          var moved = S.habits.splice(from, 1)[0];
+          S.habits.splice(to, 0, moved);
           saveHabits();
           render();
           var handle = Array.prototype.filter.call(document.querySelectorAll("[data-drag-id]"), function (item) {
-            return item.dataset.dragId === sourceId;
+            return item.dataset.dragId === id;
           })[0];
           if (handle) handle.focus();
         }
@@ -546,14 +558,6 @@
             cur = b.dataset.d;
             view = "day";
             render();
-          } else if (b.dataset.order) {
-            var habitIndex = S.habits.findIndex(function (habit) {
-              return habit.id === b.dataset.orderId;
-            });
-            var targetIndex = habitIndex + (b.dataset.order === "up" ? -1 : 1);
-            if (targetIndex >= 0 && targetIndex < S.habits.length) {
-              reorderHabit(b.dataset.orderId, S.habits[targetIndex].id);
-            }
           } else if (b.dataset.share) {
             var habitToShare = S.habits.filter(function (habit) {
               return habit.id === b.dataset.share;
@@ -604,38 +608,56 @@
           }
         });
 
-        $("main").addEventListener("dragstart", function (e) {
+        var activePointerDrag = null;
+
+        $("main").addEventListener("pointerdown", function (e) {
           var handle = e.target.closest("[data-drag-id]");
-          if (!handle) return;
-          e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", handle.dataset.dragId);
-          handle.closest(".hab").classList.add("dragging");
+          if (!handle || (e.button !== undefined && e.button !== 0)) return;
+          activePointerDrag = {
+            id: handle.dataset.dragId,
+            pointerId: e.pointerId,
+            startX: e.clientX,
+            startY: e.clientY,
+            moved: false,
+            row: handle.closest(".hab")
+          };
+          handle.setPointerCapture(e.pointerId);
         });
 
-        $("main").addEventListener("dragover", function (e) {
-          var row = e.target.closest(".hab");
-          if (!row || !e.dataTransfer) return;
+        $("main").addEventListener("pointermove", function (e) {
+          if (!activePointerDrag || activePointerDrag.pointerId !== e.pointerId) return;
+          if (!activePointerDrag.moved && Math.hypot(e.clientX - activePointerDrag.startX, e.clientY - activePointerDrag.startY) < 5) return;
+          activePointerDrag.moved = true;
           e.preventDefault();
-          e.dataTransfer.dropEffect = "move";
-          Array.prototype.forEach.call($("main").querySelectorAll(".hab.drop-target"), function (item) {
-            item.classList.remove("drop-target");
-          });
-          row.classList.add("drop-target");
+          var target = document.elementFromPoint(e.clientX, e.clientY),
+            targetRow = target && target.closest(".hab"),
+            draggedRow = activePointerDrag.row;
+          if (!targetRow || targetRow === draggedRow) return;
+          var rect = targetRow.getBoundingClientRect(),
+            insertBefore = e.clientY < rect.top + rect.height / 2,
+            reference = insertBefore ? targetRow : targetRow.nextElementSibling;
+          if (reference !== draggedRow) $("main").insertBefore(draggedRow, reference);
         });
 
-        $("main").addEventListener("drop", function (e) {
-          var row = e.target.closest(".hab");
-          if (!row || !e.dataTransfer) return;
-          e.preventDefault();
-          reorderHabit(e.dataTransfer.getData("text/plain"), row.dataset.habitId);
+        $("main").addEventListener("pointerup", function (e) {
+          if (!activePointerDrag || activePointerDrag.pointerId !== e.pointerId) return;
+          var moved = activePointerDrag.moved;
+          activePointerDrag.row.classList.remove("dragging");
+          activePointerDrag = null;
+          if (moved) persistHabitOrder();
         });
 
-        $("main").addEventListener("dragend", function (e) {
+        $("main").addEventListener("pointercancel", function (e) {
+          if (!activePointerDrag || activePointerDrag.pointerId !== e.pointerId) return;
+          activePointerDrag = null;
+          render();
+        });
+
+        $("main").addEventListener("keydown", function (e) {
           var handle = e.target.closest("[data-drag-id]");
-          if (handle) handle.closest(".hab").classList.remove("dragging");
-          Array.prototype.forEach.call($("main").querySelectorAll(".hab.drop-target"), function (item) {
-            item.classList.remove("drop-target");
-          });
+          if (!handle || !e.altKey || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+          e.preventDefault();
+          moveHabitByKeyboard(handle.dataset.dragId, e.key === "ArrowUp" ? -1 : 1);
         });
 
         $("themeToggle").addEventListener("click", function () {
