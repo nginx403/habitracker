@@ -355,6 +355,7 @@ button {
   display: flex;
   align-items: center;
   gap: 4px;
+  margin-bottom: -10px;
 }
 
 .drag-handle {
@@ -409,7 +410,7 @@ button {
   align-items: center;
   gap: 12px;
   min-height: 26px;
-  margin-left: 34px;
+  margin-left: 64px;
 }
 
 .hab-meta small {
@@ -421,7 +422,7 @@ button {
 .hab-actions {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 11px;
   flex: none;
   margin-left: auto;
 }
