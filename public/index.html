@@ -388,9 +388,7 @@
               '<label for="hs">Starts</label><input type="date" id="hs" value="' + x.start + '">' +
               '<label>Repeats daily</label><div class="opt"><button data-m="never" class="' + (mode === "never" ? "on" : "") + '">Until I stop it</button><button data-m="date" class="' + (mode === "date" ? "on" : "") + '">Until a date</button></div>' +
               (mode === "date" ? '<input type="date" id="he" value="' + dateEnd + '">' : "") +
-              '<div class="acts"><button class="btn ghost" data-x="cancel">Cancel</button><button class="btn" data-x="save">Save</button>' +
-              (id ? '<button class="btn ghost" data-x="stop">Stop after today</button>' : "") +
-              '</div>';
+              '<div class="acts"><button class="btn ghost" data-x="cancel">Cancel</button><button class="btn" data-x="save">Save</button></div>';
             s.querySelector("emoji-picker").addEventListener("emoji-click", function (e) {
               x.emoji = e.detail.unicode;
               $("emojiToggle").textContent = x.emoji;
