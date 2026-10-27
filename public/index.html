@@ -10,99 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Ctext y='88' font-size='96'%3E%E2%98%91%EF%B8%8F%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
     <title>habitracker</title>
-    <style>
-      :root{--bg:#fff;--fg:#252525;--mute:#8a8a8a;--line:#e3e3e3;--soft:#f6f6f6;--green:#2fae66;--red:#e5533d;
-      box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-      @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#252525;--fg:#f2f2f2;--mute:#8d8d8d;--line:#2a2a2a;--soft:#171717;color-scheme:dark}}
-      :root[data-theme="dark"]{--bg:#252525;--fg:#f2f2f2;--mute:#8d8d8d;--line:#2a2a2a;--soft:#171717;color-scheme:dark}
-      *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-      html,body{height:100%;margin:0}
-      body{background:var(--bg);color:var(--fg);font:16px/1.4 "Helvetica Neue",Helvetica,Arial,sans-serif}
-      #app{display:flex;flex-direction:column;height:100%;max-width:560px;margin:0 auto}
-      header{padding:22px 20px 12px;display:flex;justify-content:space-between;align-items:flex-end}
-      h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.5px}
-      .theme-toggle{border:1px solid var(--line);background:var(--soft);color:var(--fg);border-radius:12px;padding:8px 12px;cursor:pointer;font-size:18px;line-height:1}
-      .sub{color:var(--mute);font-size:13px}
-      main{flex:1;overflow-y:auto;padding:8px 20px 16px}
-      nav{display:flex;gap:6px;padding:8px 12px;border-top:1px solid var(--line)}
-      nav button{flex:1;padding:12px 0;background:transparent;color:var(--mute);border:0;border-radius:12px;font:inherit;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
-      nav button.on{background:var(--soft);color:var(--fg)}
-      button{font:inherit;color:var(--fg)}
-      .btn{background:var(--fg);color:var(--bg);border:1px solid var(--fg);border-radius:12px;padding:12px 16px;font-weight:600;cursor:pointer}
-      .btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}
-      .btn.danger{background:transparent;color:var(--red);border-color:var(--line)}
-      .row{display:flex;gap:8px;align-items:center}
-      .datebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-      .datebar button{width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:transparent;font-size:20px;cursor:pointer}
-      .datebar div{text-align:center;font-weight:600}
-      .bar{height:6px;background:var(--soft);border-radius:99px;margin-bottom:16px;overflow:hidden}
-      .bar i{display:block;height:100%;background:var(--fg);border-radius:99px;transition:width .25s}
-      .item{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;margin-bottom:6px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-align:left;cursor:pointer;transition:background .15s}
-      .box{width:24px;height:24px;border:1.5px solid var(--mute);border-radius:8px;flex:none;display:grid;place-items:center;font-weight:700;font-size:14px;transition:all .15s}
-      .habit-mark{width:28px;height:28px;display:grid;place-items:center;flex:none;font-size:20px}
-      .item.done{background:var(--soft)}
-      .item.done .box{background:var(--fg);border-color:var(--fg);color:var(--bg)}
-      .item.done .nm{color:var(--mute);text-decoration:line-through}
-      .item .nm{flex:1;font-weight:500}
-      .empty{color:var(--mute);padding:32px 0;text-align:center}
-      .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-      .mh button{width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:transparent;font-size:20px;cursor:pointer}
-      .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-      .dow{text-align:center;color:var(--mute);font-size:12px;padding-bottom:4px}
-      .cell{aspect-ratio:1;border:1px solid var(--line);border-radius:12px;background:transparent;font-weight:600;cursor:pointer;padding:0}
-      .cell.blank{border:0;cursor:default}
-      .cell.none{color:var(--mute);font-weight:400}
-      .cell.g{background:var(--green);border-color:var(--green);color:#fff}
-      .cell.r{background:var(--red);border-color:var(--red);color:#fff}
-      .cell.today{outline:2px solid var(--fg);outline-offset:1px}
-      .legend{display:flex;gap:16px;margin-top:16px;font-size:13px;color:var(--mute)}
-      .legend span::before{content:"";display:inline-block;width:12px;height:12px;margin-right:6px;background:var(--c);border-radius:4px;vertical-align:-1px}
-      .hab{display:block;width:100%;text-align:left;padding:12px 14px;margin-bottom:6px;border:1px solid var(--line);border-radius:12px;background:var(--bg);cursor:pointer}
-      .hab.off{color:var(--mute)}
-      .hab b{display:flex;align-items:center;gap:8px;font-weight:600}
-      .hab b .habit-mark{width:26px;height:26px;font-size:18px}
-      .hab small{color:var(--mute)}
-      .add{width:100%;margin-bottom:16px}
-      #modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:flex-end;justify-content:center;z-index:5}
-      #modal.show{display:flex}
-      .sheet{background:var(--bg);border-radius:24px 24px 0 0;width:100%;max-width:560px;padding:22px 20px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.12)}
-      .sheet{position:relative}
-      .sheet-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-      .sheet h2{margin:0;font-size:20px}
-      .emoji-trigger{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--line);border-radius:12px;background:var(--soft);font-size:23px;cursor:pointer}
-      .emoji-popover{position:absolute;top:76px;right:12px;z-index:8;width:min(360px,calc(100vw - 28px));height:min(390px,58vh);padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.2)}
-      .emoji-popover[hidden]{display:none}
-      .emoji-popover emoji-picker{display:block;width:100%;height:calc(100% - 42px);--background:var(--bg);--border-color:var(--line);--border-radius:10px;--button-active-background:var(--soft);--button-hover-background:var(--soft);--category-font-color:var(--fg);--input-font-color:var(--fg);--input-placeholder-color:var(--mute);--outline-color:var(--mute);--indicator-color:var(--fg)}
-      .emoji-clear{display:block;margin:4px 0 0 auto;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);cursor:pointer}
-      label{display:block;font-weight:600;margin:14px 0 6px;font-size:14px}
-      input[type=text],input[type=date]{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);font:inherit}
-      input:focus{outline:none;border-color:var(--fg)}
-      .opt{display:flex;margin-bottom:8px;background:var(--soft);border-radius:12px;padding:3px}
-      .opt button{flex:1;padding:10px;border:0;border-radius:10px;background:transparent;color:var(--mute);font-weight:600;cursor:pointer}
-      .opt button.on{background:var(--bg);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-      .emoji-field{display:flex;align-items:center;gap:8px}
-      .emoji-field input{flex:1;min-width:0}
-      .clear-emoji{min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:transparent;cursor:pointer}
-      .acts{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
-      .acts .btn{flex:1}
-      .toast{position:fixed;left:20px;right:20px;bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:12px 16px;border-radius:12px;font-weight:600;z-index:9;display:none;max-width:520px;margin:0 auto}
-      .inbox{background:var(--soft);border-radius:16px;padding:14px;margin-bottom:16px}
-      .inbox .r{display:flex;align-items:center;gap:8px;margin-top:8px}
-      .inbox .r span{flex:1}
-      .inbox .btn{padding:8px 12px}
-      h3{margin:0 0 4px;font-size:14px}
-      #login{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;justify-content:center;align-items:center;gap:16px;padding:24px;text-align:center;z-index:20}
-      #login h1{font-size:40px}
-      #login .btn{padding:14px 28px}
-      @media (hover:hover){
-        .theme-toggle:hover,.datebar button:hover,.mh button:hover,.cell.none:hover{background:var(--soft);border-color:var(--mute)}
-        nav button:hover{background:var(--soft);color:var(--fg)}
-        .btn:hover{filter:brightness(.9)}
-        .item:hover,.hab:hover{background:var(--soft);border-color:var(--mute)}
-        .cell.g:hover,.cell.r:hover{filter:brightness(.9)}
-        .opt button:not(.on):hover{background:var(--bg);color:var(--fg)}
-      }
-    </style>
+    <link rel="stylesheet" href="styles.css" />
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -408,7 +316,7 @@
 
             S.habits.forEach(function (x) {
               var off = x.end && x.end < TODAY;
-              h += '<button class="hab' + (off ? " off" : "") + '" data-e="' + x.id + '"><b>' + (x.emoji ? '<span class="habit-mark" aria-hidden="true">' + esc(x.emoji) + '</span>' : '') + '<span>' + esc(x.name) + '</span></b><small>' + (off ? "Ended " : "Daily · ") + (x.end ? "until " + fmt(x.end, { month: "short", day: "numeric", year: "numeric" }) : "until stopped") + '</small></button>';
+              h += '<div class="hab' + (off ? " off" : "") + '"><button type="button" class="hab-title" data-e="' + x.id + '"><span class="habit-mark" aria-hidden="true">' + esc(x.emoji || "") + '</span><span class="hab-name">' + esc(x.name) + '</span></button><div class="hab-meta"><small>' + (off ? "Ended " : "Daily · ") + (x.end ? "until " + fmt(x.end, { month: "short", day: "numeric", year: "numeric" }) : "until stopped") + '</small><span class="hab-actions"><button type="button" class="hab-action" data-share="' + x.id + '">Share</button><button type="button" class="hab-action danger" data-delete="' + x.id + '">Delete</button></span></div></div>';
             });
 
             h += '<button class="btn ghost" style="width:100%;margin-top:16px" data-a="out">Sign out</button>';
@@ -465,10 +373,11 @@
         }
 
         function edit(id) {
-          var x = S.habits.filter(function (a) {
+          var x = Object.assign({}, S.habits.filter(function (a) {
               return a.id === id;
-            })[0] || { name: "", start: TODAY, end: null },
+            })[0] || { name: "", start: TODAY, end: null, emoji: "" }),
             mode = x.end ? "date" : "never",
+            dateEnd = x.end || addDays(x.start, 30),
             s = $("sheet");
 
           function draw() {
@@ -478,20 +387,20 @@
               '<label for="hn">Name</label><input type="text" id="hn" maxlength="60" autocomplete="off" value="' + esc(x.name) + '" placeholder="e.g. Read 20 pages">' +
               '<label for="hs">Starts</label><input type="date" id="hs" value="' + x.start + '">' +
               '<label>Repeats daily</label><div class="opt"><button data-m="never" class="' + (mode === "never" ? "on" : "") + '">Until I stop it</button><button data-m="date" class="' + (mode === "date" ? "on" : "") + '">Until a date</button></div>' +
-              (mode === "date" ? '<input type="date" id="he" value="' + (x.end || addDays(TODAY, 30)) + '">' : "") +
+              (mode === "date" ? '<input type="date" id="he" value="' + dateEnd + '">' : "") +
               '<div class="acts"><button class="btn ghost" data-x="cancel">Cancel</button><button class="btn" data-x="save">Save</button>' +
-              (id ? '<button class="btn ghost" data-x="stop">Stop after today</button><button class="btn ghost" data-x="share">Share</button><button class="btn danger" data-x="del">Delete</button>' : "") +
+              (id ? '<button class="btn ghost" data-x="stop">Stop after today</button>' : "") +
               '</div>';
+            s.querySelector("emoji-picker").addEventListener("emoji-click", function (e) {
+              x.emoji = e.detail.unicode;
+              $("emojiToggle").textContent = x.emoji;
+              $("emojiPopover").hidden = true;
+              $("emojiToggle").setAttribute("aria-expanded", "false");
+            });
           }
 
           draw();
           $("modal").classList.add("show");
-          s.querySelector("emoji-picker").addEventListener("emoji-click", function (e) {
-            x.emoji = e.detail.unicode;
-            $("emojiToggle").textContent = x.emoji;
-            $("emojiPopover").hidden = true;
-            $("emojiToggle").setAttribute("aria-expanded", "false");
-          });
 
           s.onclick = function (e) {
             var b = e.target.closest("button");
@@ -514,11 +423,14 @@
 
             if (b.dataset.m) {
               x.name = $("hn").value;
-              x.emoji = $("hemo").value.trim();
               x.start = $("hs").value || x.start;
-              if ($("he")) x.end = $("he").value;
+              if ($("he")) dateEnd = $("he").value || dateEnd;
               mode = b.dataset.m;
               if (mode === "never") x.end = null;
+              else {
+                if (dateEnd < x.start) dateEnd = addDays(x.start, 30);
+                x.end = dateEnd;
+              }
               draw();
               return;
             }
@@ -529,7 +441,6 @@
               })[0];
 
             if (a === "cancel") close();
-            if (a === "share") openShare([t]);
             if (a === "save") {
               var nm = $("hn").value.trim();
               if (!nm) {
@@ -565,23 +476,28 @@
               render();
             }
 
-            if (a === "del" && confirm("Delete this habit and its history?")) {
-              S.habits = S.habits.filter(function (q) {
-                return q.id !== id;
-              });
-              var yrs = {};
-              Object.keys(S.logs).forEach(function (k) {
-                yrs[k.slice(0, 4)] = 1;
-                S.logs[k] = S.logs[k].filter(function (i) {
-                  return i !== id;
-                });
-              });
-              saveHabits();
-              saveLogs(Object.keys(yrs));
-              close();
-              render();
-            }
           };
+        }
+
+        function deleteHabit(id) {
+          var habit = S.habits.filter(function (item) {
+            return item.id === id;
+          })[0];
+          if (!habit || !confirm("Delete this habit and its history?")) return;
+
+          S.habits = S.habits.filter(function (item) {
+            return item.id !== id;
+          });
+          var years = {};
+          Object.keys(S.logs).forEach(function (day) {
+            years[day.slice(0, 4)] = 1;
+            S.logs[day] = S.logs[day].filter(function (habitId) {
+              return habitId !== id;
+            });
+          });
+          saveHabits();
+          saveLogs(Object.keys(years));
+          render();
         }
 
         function close() {
@@ -610,7 +526,13 @@
             cur = b.dataset.d;
             view = "day";
             render();
-          } else if (b.dataset.e) edit(b.dataset.e);
+          } else if (b.dataset.share) {
+            var habitToShare = S.habits.filter(function (habit) {
+              return habit.id === b.dataset.share;
+            })[0];
+            if (habitToShare) openShare([habitToShare]);
+          } else if (b.dataset.delete) deleteHabit(b.dataset.delete);
+          else if (b.dataset.e) edit(b.dataset.e);
           else if (b.dataset.acc) {
             var sh = S.inbox.filter(function (q) {
               return q.id === b.dataset.acc;
@@ -665,16 +587,9 @@
           unsubs.forEach(function (u) {
             u();
           });
-          unsubs = [];
-        }
-
-        if (firebaseConfig.apiKey.indexOf("PASTE") === 0) {
-          $("login").style.display = "flex";
-          $("lmsg").textContent = "Setup needed: paste your Firebase config at the top of index.html.";
           $("gbtn").style.display = "none";
           return;
         }
-
         firebase.initializeApp(firebaseConfig);
         auth = firebase.auth();
         fs = firebase.firestore();
