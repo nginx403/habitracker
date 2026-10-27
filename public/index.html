@@ -73,9 +73,9 @@
       .opt{display:flex;margin-bottom:8px;background:var(--soft);border-radius:12px;padding:3px}
       .opt button{flex:1;padding:10px;border:0;border-radius:10px;background:transparent;color:var(--mute);font-weight:600;cursor:pointer}
       .opt button.on{background:var(--bg);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-      .emoji-picks{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
-      .emoji-picks button{width:36px;height:36px;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:19px;cursor:pointer}
-      .emoji-picks button.on{border-color:var(--fg);background:var(--soft)}
+      .emoji-field{display:flex;align-items:center;gap:8px}
+      .emoji-field input{flex:1;min-width:0}
+      .clear-emoji{min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:transparent;cursor:pointer}
       .acts{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
       .acts .btn{flex:1}
       .toast{position:fixed;left:20px;right:20px;bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:12px 16px;border-radius:12px;font-weight:600;z-index:9;display:none;max-width:520px;margin:0 auto}
@@ -349,7 +349,7 @@
               h += '<div class="bar"><i style="width:' + (n / l.length * 100) + '%"></i></div>';
               l.forEach(function (x) {
                 var d = isDone(cur, x.id);
-                h += '<button class="item' + (d ? " done" : "") + '" data-t="' + x.id + '"><span class="box">' + (d ? "✓" : "") + '</span><span class="habit-mark" aria-hidden="true">' + esc(x.emoji || "✨") + '</span><span class="nm">' + esc(x.name) + '</span></button>';
+                h += '<button class="item' + (d ? " done" : "") + '" data-t="' + x.id + '"><span class="box">' + (d ? "✓" : "") + '</span>' + (x.emoji ? '<span class="habit-mark" aria-hidden="true">' + esc(x.emoji) + '</span>' : '') + '<span class="nm">' + esc(x.name) + '</span></button>';
               });
               h += '<div class="sub" style="margin-top:8px">' + n + ' of ' + l.length + ' done</div>';
             } else {
@@ -387,7 +387,7 @@
             if (S.inbox.length) {
               h += '<div class="inbox"><h3>Shared with you</h3>';
               S.inbox.forEach(function (x) {
-                h += '<div class="r"><span><b>' + esc(x.emoji || "✨") + ' ' + esc(x.name) + '</b><br><small class="sub">from ' + esc(x.fromName || "someone") + '</small></span><button class="btn" data-acc="' + x.id + '">Add</button><button class="btn ghost" data-dec="' + x.id + '">Skip</button></div>';
+                h += '<div class="r"><span><b>' + (x.emoji ? esc(x.emoji) + ' ' : '') + esc(x.name) + '</b><br><small class="sub">from ' + esc(x.fromName || "someone") + '</small></span><button class="btn" data-acc="' + x.id + '">Add</button><button class="btn ghost" data-dec="' + x.id + '">Skip</button></div>';
               });
               h += '</div>';
             }
@@ -400,7 +400,7 @@
 
             S.habits.forEach(function (x) {
               var off = x.end && x.end < TODAY;
-              h += '<button class="hab' + (off ? " off" : "") + '" data-e="' + x.id + '"><b><span class="habit-mark" aria-hidden="true">' + esc(x.emoji || "✨") + '</span><span>' + esc(x.name) + '</span></b><small>' + (off ? "Ended " : "Daily · ") + (x.end ? "until " + fmt(x.end, { month: "short", day: "numeric", year: "numeric" }) : "until stopped") + '</small></button>';
+              h += '<button class="hab' + (off ? " off" : "") + '" data-e="' + x.id + '"><b>' + (x.emoji ? '<span class="habit-mark" aria-hidden="true">' + esc(x.emoji) + '</span>' : '') + '<span>' + esc(x.name) + '</span></b><small>' + (off ? "Ended " : "Daily · ") + (x.end ? "until " + fmt(x.end, { month: "short", day: "numeric", year: "numeric" }) : "until stopped") + '</small></button>';
             });
 
             h += '<button class="btn ghost" style="width:100%;margin-top:16px" data-a="out">Sign out</button>';
@@ -436,7 +436,7 @@
                   toEmail: to,
                   habitId: h.id,
                   name: h.name,
-                  emoji: h.emoji || "✨",
+                  emoji: h.emoji || "",
                   start: h.start,
                   end: h.end || null,
                   doneDays: Object.keys(S.logs).filter(function (day) {
@@ -461,26 +461,13 @@
               return a.id === id;
             })[0] || { name: "", start: TODAY, end: null },
             mode = x.end ? "date" : "never",
-            emojis = [
-              { value: "✨", label: "Sparkle" },
-              { value: "📚", label: "Reading" },
-              { value: "💧", label: "Water" },
-              { value: "🏃", label: "Movement" },
-              { value: "🧘", label: "Mindfulness" },
-              { value: "🥗", label: "Nutrition" },
-              { value: "💤", label: "Sleep" },
-              { value: "🎯", label: "Goal" }
-            ],
             s = $("sheet");
 
           function draw() {
             s.innerHTML =
               '<h2>' + (id ? "Edit habit" : "New habit") + '</h2>' +
               '<label for="hn">Name</label><input type="text" id="hn" maxlength="60" autocomplete="off" value="' + esc(x.name) + '" placeholder="e.g. Read 20 pages">' +
-              '<label>Emoji</label><div class="emoji-picks" role="group" aria-label="Habit emoji">' + emojis.map(function (item) {
-                var selected = (x.emoji || "✨") === item.value;
-                return '<button type="button" class="' + (selected ? "on" : "") + '" data-emoji="' + item.value + '" aria-label="Choose ' + item.label + '" aria-pressed="' + selected + '">' + item.value + '</button>';
-              }).join("") + '</div>' +
+              '<label for="hemo">Emoji</label><div class="emoji-field"><input type="text" id="hemo" autocomplete="off" autocapitalize="off" spellcheck="false" value="' + esc(x.emoji || "") + '" placeholder="Choose emoji"><button type="button" class="clear-emoji" data-clear-emoji title="No emoji" aria-label="No emoji">×</button></div>' +
               '<label for="hs">Starts</label><input type="date" id="hs" value="' + x.start + '">' +
               '<label>Repeats daily</label><div class="opt"><button data-m="never" class="' + (mode === "never" ? "on" : "") + '">Until I stop it</button><button data-m="date" class="' + (mode === "date" ? "on" : "") + '">Until a date</button></div>' +
               (mode === "date" ? '<input type="date" id="he" value="' + (x.end || addDays(TODAY, 30)) + '">' : "") +
@@ -496,14 +483,18 @@
             var b = e.target.closest("button");
             if (!b) return;
 
-            if (b.dataset.emoji) {
-              x.emoji = b.dataset.emoji;
+            if (b.hasAttribute("data-clear-emoji")) {
+              x.name = $("hn").value;
+              x.start = $("hs").value || x.start;
+              if ($("he")) x.end = $("he").value;
+              x.emoji = "";
               draw();
               return;
             }
 
             if (b.dataset.m) {
               x.name = $("hn").value;
+              x.emoji = $("hemo").value.trim();
               x.start = $("hs").value || x.start;
               if ($("he")) x.end = $("he").value;
               mode = b.dataset.m;
@@ -521,6 +512,7 @@
             if (a === "share") openShare([t]);
             if (a === "save") {
               var nm = $("hn").value.trim();
+              x.emoji = $("hemo").value.trim();
               if (!nm) {
                 $("hn").focus();
                 return;
@@ -535,11 +527,11 @@
 
               if (t) {
                 t.name = nm;
-                t.emoji = x.emoji || "✨";
+                t.emoji = x.emoji;
                 t.start = st;
                 t.end = en;
               } else {
-                S.habits.push({ id: nid(), name: nm, emoji: x.emoji || "✨", start: st, end: en });
+                S.habits.push({ id: nid(), name: nm, emoji: x.emoji, start: st, end: en });
               }
 
               saveHabits();
@@ -610,7 +602,7 @@
                   id: nid(),
                   sharedId: sh.id,
                   name: sh.name,
-                  emoji: sh.emoji || "✨",
+                  emoji: sh.emoji || "",
                   start: TODAY,
                   end: sh.end && sh.end >= TODAY ? sh.end : null
                 });
