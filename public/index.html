@@ -671,9 +671,16 @@
           unsubs.forEach(function (u) {
             u();
           });
+          unsubs = [];
+        }
+
+        if (firebaseConfig.apiKey.indexOf("PASTE") === 0) {
+          $("login").style.display = "flex";
+          $("lmsg").textContent = "Setup needed: paste your Firebase config at the top of index.html.";
           $("gbtn").style.display = "none";
           return;
         }
+
         firebase.initializeApp(firebaseConfig);
         auth = firebase.auth();
         fs = firebase.firestore();
